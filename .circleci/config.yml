@@ -82,33 +82,26 @@ jobs:
 
   test-frontend:
     docker:
-      # Docker image 
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
       - restore_cache:
           keys: [frontend-build]
-      # Your job code here
       - run:
           name: Test front-end
           command: |
+            # Your code here
             cd ./frontend
             sudo  npm  install
             sudo  npm run test
                 
   test-backend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
       - restore_cache:
           keys: [backend-build]
-      # Your job code here
       - run:
           name: Test Back-end 
           command: |
@@ -118,13 +111,9 @@ jobs:
             
   scan-frontend:
     docker:
-      # Docker image here
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
       - checkout
-      # Restore from cache
-      # Your job code here
       - run:
           name: Run audit of the frontend
           command: |
@@ -209,7 +198,7 @@ jobs:
             cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml            
       # Here's where you will add some code to rollback on failure 
-      - destroy-environment     
+  
 
   run-migrations:
     docker:
