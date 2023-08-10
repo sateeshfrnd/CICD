@@ -67,59 +67,67 @@ jobs:
 
   test-frontend:
     docker:
-      # Docker image here
+      # Docker image 
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
                 
   test-backend:
     docker:
       # Docker image here
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
             
   scan-frontend:
     docker:
       # Docker image here
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
 
   scan-backend:
     docker:
       # Docker image here
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
+      - checkout
       # Restore from cache
       # Your job code here
 
   deploy-infrastructure:
-    docker:
-      # Docker image here that supports AWS CLI
+    docker:      
+      - image: amazon/aws-cli # Docker image here that supports AWS CLI
     steps:
       # Checkout code from git
+      - checkout
       - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              #--tags project=your-tag \
-              # --stack-name "your back-end stack name with workflow id" \
-              # --parameter-overrides ID="your workflow id"  
-              exit 1
+              --tags project="udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}" \
+              --stack-name "udapeople-backendStack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              # exit 1              
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              #--tags project=your-tag \
-              # --stack-name "your front-end stack name with workflow id" \
-              # --parameter-overrides ID="your workflow id"  
-              exit 1
+              --tags project="udapeople-frontendStack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"              
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -132,17 +140,19 @@ jobs:
       # Here's where you will add some code to rollback on failure      
 
   configure-infrastructure:
-    docker:
-      # Docker image here that supports Ansible
-    steps:
-      # Checkout code from git
-      # Add ssh keys with fingerprint
+    docker:      
+      - image: python:3.7-alpine3.12  # Docker image here that supports Ansible
+    steps:      
+      - checkout      
+      - add_ssh_keys:
+          fingerprints:
+             - 49:8a:76:a9:01:e7:e2:c9:5e:f7:49:db:fa:b4:08:21
+          at: ~/
       # attach workspace
       - run:
           name: Install dependencies
           command: |
-            # Your code here
-            exit 1
+            apk add --update ansible
       - run:
           name: Configure server
           command: |
@@ -152,7 +162,7 @@ jobs:
 
   run-migrations:
     docker:
-      # Docker image here that supports NodeJS
+      - image: circleci/node:13.8.0
     steps:
       # Checkout code from git
       - run:
@@ -169,9 +179,9 @@ jobs:
 
   deploy-frontend:
     docker:
-      # Docker image here that supports AWS CLI
+      - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -190,11 +200,14 @@ jobs:
                     
   deploy-backend:
     docker:
-      # Docker image here that supports Ansible
+      - image: python:3.7-alpine3.11
     steps:
-      # Checkout code from git
-      # Add ssh keys with fingerprint
-      # attach workspace
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - 7a:07:e6:81:5d:56:ce:f5:2d:f7:5c:99:7e:92:cd:09
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -207,9 +220,11 @@ jobs:
 
   smoke-test:
     docker:
-      # Lightweight Docker image 
+      - image: python:3.7-alpine3.11
     steps:
-      # Checkout code from git
+      - checkout
+      - attach_workspace:
+            at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -230,9 +245,9 @@ jobs:
 
   cloudfront-update:
     docker:
-      # Docker image here that supports AWS CLI
+      - image: amazon/aws-cli
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -245,9 +260,9 @@ jobs:
 
 cleanup:
     docker:
-      # Docker image here
+      - image: amazon/aws-cli
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Get old stack workflow id
           command: |
@@ -291,7 +306,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
