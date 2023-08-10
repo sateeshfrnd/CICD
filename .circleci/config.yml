@@ -392,27 +392,27 @@ jobs:
       # Here's where you will add some code to rollback on failure 
 
   cleanup:
-      docker:
-        - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run:
-            name: Install dependencies
-            command: |
-              yum -y install jq tar gzip git curl
-        - run:
-            name: Get old stack workflow id
-            command: |
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            yum -y install jq tar gzip git curl
+      - run:
+          name: Get old stack workflow id
+          command: |
+            # your code here
+            export OldWorkflowID="the id here"
+            export STACKS=[] #put the list of stacks here
+      - run:
+          name: Remove old stacks and files
+          command: |
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
               # your code here
-              export OldWorkflowID="the id here"
-              export STACKS=[] #put the list of stacks here
-        - run:
-            name: Remove old stacks and files
-            command: |
-              if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-              then
-                # your code here
-              fi
+            fi
             
 
 workflows:
