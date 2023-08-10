@@ -391,28 +391,28 @@ jobs:
               --tags project=udapeople
       # Here's where you will add some code to rollback on failure 
 
-cleanup:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            yum -y install jq tar gzip git curl
-      - run:
-          name: Get old stack workflow id
-          command: |
-            # your code here
-            export OldWorkflowID="the id here"
-            export STACKS=[] #put the list of stacks here
-      - run:
-          name: Remove old stacks and files
-          command: |
-            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-            then
+  cleanup:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - checkout
+        - run:
+            name: Install dependencies
+            command: |
+              yum -y install jq tar gzip git curl
+        - run:
+            name: Get old stack workflow id
+            command: |
               # your code here
-            fi
+              export OldWorkflowID="the id here"
+              export STACKS=[] #put the list of stacks here
+        - run:
+            name: Remove old stacks and files
+            command: |
+              if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+              then
+                # your code here
+              fi
             
 
 workflows:
@@ -445,5 +445,5 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cleanup:
+          requires: [cloudfront-update]
