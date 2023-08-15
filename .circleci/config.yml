@@ -7,11 +7,19 @@ commands:
       # Add parameter here   
     steps:
       - run:
+          name: Delete S3 content
+          when: on_fail
+          command: |
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            exit 0
+
+      - run:
           name: Destroy environments
           when: on_fail
           command: |
-            # Your code here
-            exit 1
+            aws cloudformation delete-stack --stack-name udapeople-backendStack-${CIRCLE_WORKFLOW_ID:0:7}
+            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+            exit 0
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -20,7 +28,7 @@ commands:
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
+          when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
             SUCCESS = 1
@@ -29,6 +37,7 @@ commands:
             #  cd ~/project/backend
             #  npm install
             #  Add revert code here. You can find this in the Getting Started section.
+              npm run migrations:revert
               exit 1
             fi
             
@@ -177,6 +186,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure      
+      - destroy-environment
 
   configure-infrastructure:
     docker:      
@@ -198,7 +208,7 @@ jobs:
             cd ~/project/.circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml            
       # Here's where you will add some code to rollback on failure 
-  
+      - destroy-environment     
 
   run-migrations:
     docker:
@@ -215,7 +225,8 @@ jobs:
           command: |
             # Your code here
             exit 1
-     # Here's where you will add some code to rollback on failure      
+     # Here's where you will add some code to rollback on failure   
+     - destroy-environment   
 
   deploy-frontend:
     docker:
@@ -252,7 +263,7 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       # Here's where you will add some code to rollback on failure
-    
+      - destroy-environment      
                     
   deploy-backend:
     docker:
@@ -297,6 +308,7 @@ jobs:
             cat .circleci/ansible/inventory.txt
             ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       # Here's where you will add some code to rollback on failure 
+      - destroy-environment 
 
   smoke-test:
     docker:
@@ -355,6 +367,7 @@ jobs:
               return 1
             fi
       # Here's where you will add some code to rollback on failure 
+      - destroy-environment 
 
   cloudfront-update:
     docker:
@@ -379,6 +392,7 @@ jobs:
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
       # Here's where you will add some code to rollback on failure 
+      - destroy-environment 
 
   cleanup:
     docker:
@@ -393,14 +407,21 @@ jobs:
           name: Get old stack workflow id
           command: |
             # your code here
-            export OldWorkflowID="the id here"
-            export STACKS=[] #put the list of stacks here
+            # export OldWorkflowID="the id here"  
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/Mq1es8BpVnybvWKN6vfRGh/OldWorkflowID_${CIRCLE_WORKFLOW_ID:0:7})
+            echo $OldWorkflowID          
+            export STACKS=$(aws cloudformation list-stacks \
+            --query "StackSummaries[*].StackName" \
+            --stack-status-filter CREATE_COMPLETE \
+            --no-paginate --output text)
       - run:
           name: Remove old stacks and files
           command: |
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
-              # your code here
+              aws s3 rm s3://udapeople-${OldWorkflowID} --recursive
+              aws cloudformation delete-stack --stack-name udapeople-backendStack-$OldWorkflowID
+              aws cloudformation delete-stack --stack-name udapeople-frontend-$OldWorkflowID
             fi
             
 
