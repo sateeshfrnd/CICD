@@ -261,8 +261,16 @@ jobs:
       - run:
           name: Send migration results to memstash
           command: |
-            # Your code here
-            exit 1
+            #!/bin/bash
+            cd backend
+            cat migrationresult.txt
+            if [ $(grep -i "has been executed successfully" migrationresult.txt | wc -l) -ge 1 ]
+            then
+         	      # If you are using memstash.io, generate the token "7933fe63-4687-4fa1-8426-aa25aa1730ec" on the website
+ 			          #curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+ 			          # If you are using kvdb.io, generate the bucket ID "9GE4jRtKznmVKRfvdBABBe" in your local terminal first
+ 			          curl -k https://kvdb.io/Tn9SmVqLcMMDjjQjSJh3yw/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            fi
      # Here's where you will add some code to rollback on failure   
       - revert-migrations
       - destroy-environment   
@@ -403,7 +411,8 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              return 0
+              # Change this to 0 after the job fails
+              return 1
             else
               return 1
             fi
