@@ -229,9 +229,12 @@ jobs:
       - run:
           name: awscli install
           command: |
-            sudo apt-get -y -qq update
-            sudo apt-get -y -qq install python3
-            sudo apt-get -qq install awscli
+            # sudo apt-get -y -qq update
+            # sudo apt-get -y -qq install python3
+            # sudo apt-get -qq install awscli
+            sudo apt update
+            sudo apt install awscli
+            aws --version
       - run:
           name: envts
           working_directory: ./backend
