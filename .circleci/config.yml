@@ -185,10 +185,10 @@ jobs:
               --output text)
             echo $BACKEND_IP >> inventory
             cat inventory           
-            aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text >> .circleci/ansible/inventory.txt
-            echo `cat .circleci/ansible/inventory.txt`  
+            # aws ec2 describe-instances \
+            #   --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            #   --output text >> .circleci/ansible/inventory.txt
+            # echo `cat .circleci/ansible/inventory.txt`  
       - persist_to_workspace:
           root: ~/
           paths:
