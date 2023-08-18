@@ -184,8 +184,7 @@ jobs:
               --filters "Name=tag:project,Values=udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
             echo $BACKEND_IP >> inventory
-            cat inventory
-            # exit 1
+            cat inventory           
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text >> .circleci/ansible/inventory.txt
