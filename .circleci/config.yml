@@ -290,6 +290,7 @@ jobs:
             npm audit --audit-level=critical
             npm audit fix
             npm run build 
+            npm update 
             npm run migrations > migrations_dump.txt            
             # npm install
             # npm run build
