@@ -44,7 +44,7 @@ commands:
               exit 1
             fi
 
-  aws_cli_intsall:
+  aws_cli_install:
     steps:
       - run:
           name: Install aws-cli
