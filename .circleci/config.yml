@@ -222,7 +222,8 @@ jobs:
   run-migrations:
     docker:
       # - image: circleci/node:13.8.0
-      - image: cimg/node:14.17.4
+      # - image: cimg/node:14.17.4
+      - image: circleci/node:14.18.1
     steps:
       - checkout
       - restore_cache:
@@ -233,11 +234,15 @@ jobs:
             # sudo apt-get -y -qq update
             # sudo apt-get -y -qq install python3
             # sudo apt-get -qq install awscli
-            sudo apt-get update && sudo apt-get install -yy less
-            sudo apt-get install unzip -y
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+            
+            # sudo apt-get update && sudo apt-get install -yy less
+            # sudo apt-get install unzip -y
+            # curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            # unzip awscliv2.zip
+            # sudo ./aws/install
+            # aws --version
+            sudo apt update
+            sudo apt install -y awscli
             aws --version
       - run:
           name: envts
@@ -273,8 +278,7 @@ jobs:
             npm audit --audit-level=critical
             npm audit fix
             npm run build 
-            npm run migrations > migrations_dump.txt
-            
+            npm run migrations > migrations_dump.txt            
             # npm install
             # npm run build
             # touch migrationresult.txt   
