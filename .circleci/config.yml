@@ -221,7 +221,8 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      # - image: circleci/node:13.8.0
+      - image: cimg/node:14.17.4
     steps:
       - checkout
       - restore_cache:
@@ -261,19 +262,25 @@ jobs:
           # working_directory: ./backend
           command: |
             cd backend
+            pwd
+            echo "HOST: " $TYPEORM_HOST
+            echo "PWD: " $(pwd)
+            echo $TYPEORM_DATABASE
             npm install 
             ## Run and save the migration output
+            npm audit fix --audit-level=critical --force
+            npm audit fix --force
+            npm audit --audit-level=critical
+            npm audit fix
+            npm run build 
             npm run migrations > migrations_dump.txt
-            # pwd
-            # echo "HOST: " $TYPEORM_HOST
-            # echo "PWD: " $(pwd)
-            # echo $TYPEORM_DATABASE
+            
             # npm install
             # npm run build
             # touch migrationresult.txt   
             # npm run migrations:revert        
             # npm run migrations >> migrationresult.txt
-            # cat migrationresult.txt
+            cat migrationresult.txt
       - run:
           name: Send migration results to memstash
           command: |
