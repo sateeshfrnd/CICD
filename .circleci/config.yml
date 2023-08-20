@@ -285,7 +285,7 @@ jobs:
             echo $TYPEORM_DATABASE
             npm install 
             ## Run and save the migration output
-            # npm audit fix --audit-level=critical --force
+            npm audit fix --audit-level=critical --force
             # npm audit fix --force
             # npm audit --audit-level=critical
             # npm audit fix
