@@ -43,6 +43,17 @@ commands:
               npm run migrations:revert
               exit 1
             fi
+
+  aws_cli_intsall:
+    steps:
+      - run:
+          name: Install aws-cli
+          command: |
+            sudo apt install curl
+            sudo apt install unzip
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
             
 jobs:
   build-frontend:
@@ -221,16 +232,17 @@ jobs:
 
   run-migrations:
     docker:
-      # - image: circleci/node:13.8.0
+      - image: circleci/node:13.8.0
       # - image: cimg/node:14.17.4
-      - image: circleci/node:14.18.1
+      # - image: circleci/node:14.18.1
     steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
-      - run:
-          name: awscli install
-          command: |
+      - aws_cli_install
+      # - run:
+      #     name: awscli install
+      #     command: |
             # sudo apt-get -y -qq update
             # sudo apt-get -y -qq install python3
             # sudo apt-get -qq install awscli
@@ -241,9 +253,9 @@ jobs:
             # unzip awscliv2.zip
             # sudo ./aws/install
             # aws --version
-            sudo apt update
-            sudo apt install -y awscli
-            aws --version
+            # sudo apt update
+            # sudo apt install -y awscli
+            # aws --version
       - run:
           name: envts
           working_directory: ./backend
