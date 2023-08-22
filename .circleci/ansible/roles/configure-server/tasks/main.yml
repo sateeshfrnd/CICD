@@ -22,3 +22,11 @@
     global: yes
     production: yes
     state: present
+
+- name: "Build Package"
+  shell: |
+    npm i
+    npm run build
+- name: "start web server"
+  shell: |
+    pm2 start npm -- start
