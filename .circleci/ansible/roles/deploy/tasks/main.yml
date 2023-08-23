@@ -1,41 +1,45 @@
 ---
-- name: Install Dependencies
-  become: true
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
-
-- name: Install pm2
-  become: true
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
-
-- name: Creates Directory
+- name: Create app dir
+  become: yes
   file:
-    path: /home/ubuntu/backend
+    path: /home/ubuntu/app
     state: directory
 
-- name: Copy backend dist files web server
-  copy:
+- name: "Copy backend build folder to EC2"
+  become: yes
+  unarchive:
     src: /root/project/artifact.tar.gz
-    dest: /home/ubuntu/backend/artifact.tar.gz
+    dest: /home/ubuntu/app/
+    owner: ubuntu
 
-- name: Uncompress Backend
+- name: "NPM Install"
+  become: yes
   shell: |
-    cd /home/ubuntu/backend
-    tar xvzf artifact.tar.gz -C .
-    ls -la
-- name: Build
-  become: true
+    sudo apt update
+    sudo apt-get install -y npm
+    cd /home/ubuntu/app
+
+- name: Stop and delete already running server
+  ignore_errors: yes
   shell: |
-    cd /home/ubuntu/backend
-    npm install
-    npm run build
-- name: Start PM2
+    pm2 stop backend
+    pm2 delete backend
+
+- name: "Start backend"
+  become: yes
   shell: |
-    cd /home/ubuntu/backend
-    pm2 start npm --name backend -- start
+    cd /home/ubuntu/app
+    # npm run start
+    pm2 start npm -- start
+
+  environment:
+    ENVIRONMENT: production
+    TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
+    TYPEORM_MIGRATIONS_DIR: "./src/migrations"
+    TYPEORM_MIGRATIONS: ./src/migrations/*.ts
+    TYPEORM_ENTITIES: "./src/modules/domain/**/*.entity.ts"
+    TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
+    TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
+    TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
+    TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+    TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"

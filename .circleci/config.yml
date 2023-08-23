@@ -376,10 +376,21 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            ANSIBLE_HOST_KEY_CHECKING=False
-            pwd
-            cat .circleci/ansible/inventory.txt
-            ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            export ANSIBLE_HOST_KEY_CHECKING=false
+            ansible-playbook -i inventory.txt deploy-backend.yml  
+
+            # ANSIBLE_HOST_KEY_CHECKING=False
+            # pwd
+            # cat .circleci/ansible/inventory.txt
+            # ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       # Here's where you will add some code to rollback on failure 
       - revert-migrations
       - destroy-environment 
