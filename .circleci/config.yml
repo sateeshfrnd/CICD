@@ -194,8 +194,8 @@ jobs:
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:project,Values=udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
-            echo $BACKEND_IP >> inventory
-            cat inventory           
+            echo $BACKEND_IP >> .circleci/ansible/inventory
+            cat .circleci/ansible/inventory           
             # aws ec2 describe-instances \
             #   --query 'Reservations[*].Instances[*].PublicIpAddress' \
             #   --output text >> .circleci/ansible/inventory.txt
@@ -203,7 +203,7 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory.txt
+            - project/.circleci/ansible/inventory
       # Here's where you will add some code to rollback on failure      
       - destroy-environment
 
@@ -454,8 +454,8 @@ jobs:
               return 1
             fi
       # Here's where you will add some code to rollback on failure 
-      # - revert-migrations
-      # - destroy-environment 
+      - revert-migrations
+      - destroy-environment 
 
   cloudfront-update:
     docker:
