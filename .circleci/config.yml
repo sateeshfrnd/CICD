@@ -11,7 +11,7 @@ commands:
           when: on_fail
           command: |
             aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
+            # aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
             # exit 0
 
       - run:
@@ -214,7 +214,7 @@ jobs:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible
-            ll
+            ls -la
             ansible-playbook -i inventory.txt configure-server.yml            
       # Here's where you will add some code to rollback on failure 
       - destroy-environment     
