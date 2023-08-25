@@ -11,7 +11,8 @@ commands:
           when: on_fail
           command: |
             aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            exit 0
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
+            # exit 0
 
       - run:
           name: Destroy environments
@@ -19,7 +20,7 @@ commands:
           command: |
             aws cloudformation delete-stack --stack-name udapeople-backendStack-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
-            exit 0
+            # exit 0
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -39,7 +40,6 @@ commands:
             then
               cd ~/project/backend
               npm install
-              #  Add revert code here. You can find this in the Getting Started section.
               npm run migrations:revert
               exit 1
             fi
@@ -63,17 +63,12 @@ jobs:
       - checkout
       - restore_cache:
           keys: [frontend-build]
-          name: Install dependencies
-          command: | 
-            cd ./frontend          
-            npm i
       - run:
           name: Build front-end
           command: |
-            # Your code here
             cd ./frontend
             ls -la
-            npm i
+            npm install
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -87,17 +82,11 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Install dependencies
-          command: |
-             cd ./backend
-             npm i
-      - run:
           name: Back-end build
           command: |
-            # Your code here
             cd ./backend
             ls -la
-            npm i
+            npm install
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -113,7 +102,6 @@ jobs:
       - run:
           name: Test front-end
           command: |
-            # Your code here
             cd ./frontend
             sudo  npm  install
             sudo  npm run test
@@ -141,7 +129,7 @@ jobs:
           name: Run audit of the frontend
           command: |
             cd ./frontend
-            npm i
+            npm install
             npm audit fix --audit-level=critical --force
 
   scan-backend:
@@ -151,13 +139,13 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      # Restore from cache
-      # Your job code here
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Run audit of  the backend
           command: |            
              cd ./backend
-             npm i
+             npm install
              npm audit fix --audit-level=critical --force 
 
   deploy-infrastructure:
@@ -176,8 +164,7 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project="udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}" \
               --stack-name "udapeople-backendStack-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-              # exit 1              
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"              
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -194,8 +181,8 @@ jobs:
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --filters "Name=tag:project,Values=udapeopleBackend_${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text)
-            echo $BACKEND_IP >> .circleci/ansible/inventory
-            cat .circleci/ansible/inventory           
+            echo $BACKEND_IP >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt         
             # aws ec2 describe-instances \
             #   --query 'Reservations[*].Instances[*].PublicIpAddress' \
             #   --output text >> .circleci/ansible/inventory.txt
@@ -203,7 +190,8 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory
+            # - project/.circleci/ansible/inventory
+            - "project"
       # Here's where you will add some code to rollback on failure      
       - destroy-environment
 
@@ -221,10 +209,12 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
+            pip install awscli
       - run:
           name: Configure server
           command: |
             cd ~/project/.circleci/ansible
+            ll
             ansible-playbook -i inventory.txt configure-server.yml            
       # Here's where you will add some code to rollback on failure 
       - destroy-environment     
