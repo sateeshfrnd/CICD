@@ -215,7 +215,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - c0:95:79:de:e7:3b:38:79:af:db:1d:e0:77:2c:6e:50
-      - attach_workspace
+      - attach_workspace:
           at: ~/      
       - run:
           name: Install dependencies
@@ -236,7 +236,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
-      - attach_workspace
+      - attach_workspace:
           at: ~/ 
       - aws_cli_install
       # - run:
